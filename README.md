@@ -11,3 +11,8 @@ The app and read/write APIs are protected with HTTP Basic auth (`HUB_USERNAME`, 
 2. Generate independent high-entropy values for `HUB_PASSWORD` and `INGEST_TOKEN`; set every variable in `.env.example` in Vercel for Production only.
 3. Add `https://YOUR_DOMAIN/api/spotify/callback` to the Spotify app's redirect URIs.
 4. Open `/api/spotify/connect` while authenticated. Copy the returned refresh token directly into the Vercel `SPOTIFY_REFRESH_TOKEN` environment variable, redeploy, and close the token page. Never send it through chat.
+
+
+## Authenticated seed diagnostic
+
+`POST /api/admin/seed` is an exact-path, bearer-authenticated maintenance route using `INGEST_TOKEN`. It verifies the Spotify refresh token carries all three required playlist scopes, reads Cabinet's queue/learning/love playlists to avoid album duplicates, writes selected candidate albums to the queue, and inserts matching database rows. It returns no credentials and is not accessible without the server-held ingest token.
