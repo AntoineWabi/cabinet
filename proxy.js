@@ -3,8 +3,8 @@ import {NextResponse} from 'next/server';
 function same(a='',b=''){const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&crypto.timingSafeEqual(x,y)}
 export function proxy(req){
  const auth=req.headers.get('authorization')||'';
- if(req.nextUrl.pathname==='/api/items'&&req.method==='POST'&&same(auth,`Bearer ${process.env.INGEST_TOKEN||''}`))return NextResponse.next();
- if(auth.startsWith('Basic ')){
+ if(process.env.INGEST_TOKEN&&req.nextUrl.pathname==='/api/items'&&req.method==='POST'&&same(auth,`Bearer ${process.env.INGEST_TOKEN}`))return NextResponse.next();
+ if(process.env.HUB_USERNAME&&process.env.HUB_PASSWORD&&auth.startsWith('Basic ')){
   const [u,p]=Buffer.from(auth.slice(6),'base64').toString().split(':');
   if(same(u,process.env.HUB_USERNAME||'')&&same(p,process.env.HUB_PASSWORD||''))return secure(NextResponse.next());
  }
