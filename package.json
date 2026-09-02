@@ -1,1 +1,1 @@
-{"name":"cabinet","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start"},"dependencies":{"@vercel/postgres":"latest","next":"latest","react":"latest","react-dom":"latest"}}
+{"name":"cabinet","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start"},"dependencies":{"@vercel/postgres":"latest","next":"latest","puppeteer-core":"^25.9.0","react":"latest","react-dom":"latest"}}

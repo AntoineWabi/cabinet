@@ -153,9 +153,9 @@ img { -webkit-user-drag: none; user-select: none; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(90px) saturate(1.2) brightness(1.35);
+  filter: blur(90px) grayscale(1) brightness(1.55);
   transform: scale(1.4);
-  opacity: 0.16;
+  opacity: 0.12;
   animation: bd-in 600ms ease;
 }
 @keyframes bd-in { from { opacity: 0; } }
