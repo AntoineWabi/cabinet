@@ -13,14 +13,19 @@
 }
 
 :root {
-  --paper: #e9e6e1;
-  --surface: #f2f1ee;
+  --paper: #ffffff;
+  --surface: #f7f7f6;
   --ink: #3b3a38;
   --ink-soft: #8a8781;
   --ink-faint: #b4b1ab;
   --red: #eb5d5c;
   --shadow-card: 0 18px 40px rgba(25, 27, 36, 0.18), 0 4px 10px rgba(25, 27, 36, 0.10);
   --r-card: 10px;
+  --glass: rgba(255, 255, 255, 0.58);
+  --hair: rgba(30, 26, 20, 0.10);
+  --glass-line: rgba(255, 255, 255, 0.65);
+  --glass-blur: blur(26px) saturate(1.4);
+  --glass-shadow: inset 0 1px 0 var(--glass-line), 0 6px 20px -10px rgba(40, 32, 18, 0.22);
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
@@ -49,13 +54,13 @@ img { -webkit-user-drag: none; user-select: none; }
 
 .seg {
   display: flex;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--glass);
+  border: 1px solid var(--hair);
   border-radius: 999px;
   padding: 3px;
-  box-shadow: 0 4px 14px rgba(25, 27, 36, 0.07), inset 0 1px 2px rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 .seg button {
   padding: 6px 14px;
@@ -74,10 +79,11 @@ img { -webkit-user-drag: none; user-select: none; }
 .add-btn {
   width: 34px; height: 34px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 14px rgba(25, 27, 36, 0.07);
-  backdrop-filter: blur(10px);
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 19px;
   line-height: 1;
   color: var(--ink);
@@ -94,15 +100,17 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 .ghost:active, .solid:active { transform: scale(0.96); }
 .ghost {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 16px rgba(25, 27, 36, 0.08);
-  backdrop-filter: blur(10px);
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   color: var(--ink);
 }
 .solid {
   background: var(--ink);
   color: #f4f2ef;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 3px 10px -3px rgba(0, 0, 0, 0.35);
   box-shadow: 0 10px 22px rgba(25, 27, 36, 0.25);
 }
 .solid.link { display: inline-flex; align-items: center; text-decoration: none; }
@@ -269,29 +277,36 @@ img { -webkit-user-drag: none; user-select: none; }
   min-height: 66px;
 }
 
-.hub-dock {
+.hub-typenav {
   flex: 0 0 auto;
+  align-self: center;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  padding: 0 12px calc(16px + var(--safe-b));
+  gap: 4px;
+  margin: 2px 12px 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
-.hub-dock button {
+.hub-typenav button {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
-  padding: 0 15px;
+  height: 34px;
+  padding: 0 16px;
   border-radius: 999px;
   font-family: 'Selecta', sans-serif;
   font-size: 15px;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.7);
   transition: all 180ms ease;
 }
-.hub-dock button b {
+.hub-typenav button:active { transform: scale(0.97); }
+.hub-typenav button b {
   font-size: 11px;
   font-weight: 600;
   font-family: -apple-system, system-ui, sans-serif;
@@ -299,22 +314,20 @@ img { -webkit-user-drag: none; user-select: none; }
   border-radius: 999px;
   padding: 2px 7px;
 }
-.hub-dock button.on {
+.hub-typenav button.on {
   background: var(--ink);
   color: #f4f2ef;
-  border-color: var(--ink);
-  box-shadow: 0 8px 20px rgba(25, 27, 36, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 3px 10px -3px rgba(0, 0, 0, 0.35);
 }
-.hub-dock button.on b { background: rgba(255, 255, 255, 0.18); }
+.hub-typenav button.on b { background: rgba(255, 255, 255, 0.18); }
 .deck-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px; height: 38px;
+  width: 34px; height: 34px;
   flex: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
   color: var(--ink-soft);
   text-decoration: none;
   font-size: 17px;

@@ -72,6 +72,14 @@ export default function Home() {
           <button className="add-btn" aria-label="Add" onClick={() => setAddOpen(true)}>+</button>
         </div>
       </header>
+      <nav className="hub-typenav">
+        {TYPES.map((t) => (
+          <button key={t.id} className={type === t.id ? 'on' : ''} onClick={() => setType(t.id)}>
+            {t.label}{counts[t.id] ? <b>{counts[t.id]}</b> : null}
+          </button>
+        ))}
+        {type === 'album' && <a className="deck-link" href="/deck" title="Turntable">◉</a>}
+      </nav>
 
       <section className="hub-stage">
         {loading ? (
@@ -120,14 +128,6 @@ export default function Home() {
         )}
       </section>
 
-      <nav className="hub-dock">
-        {TYPES.map((t) => (
-          <button key={t.id} className={type === t.id ? 'on' : ''} onClick={() => setType(t.id)}>
-            {t.label}{counts[t.id] ? <b>{counts[t.id]}</b> : null}
-          </button>
-        ))}
-        {type === 'album' && <a className="deck-link" href="/deck" title="Turntable">◉</a>}
-      </nav>
 
       {addOpen && <AddSheet defaultType={type} onClose={() => setAddOpen(false)} onAdded={(x) => { setItems((v) => [x, ...v]); setAddOpen(false); setType(x.type); setTab('queued'); say('Added to the queue'); }} />}
       {toast && <aside className="toast">{toast}</aside>}
