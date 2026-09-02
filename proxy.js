@@ -25,7 +25,11 @@ export async function proxy(req) {
 
   if (await verifySession(req.cookies.get(SESSION_COOKIE)?.value, process.env.HUB_PASSWORD)) return secure(NextResponse.next());
 
-  // Browsers get the Basic prompt (back-compat); anything else a plain 401.
+  // Page requests without credentials go to the login form; clients that
+  // attempted Basic (or API callers) still get the 401 challenge.
+  const accept = req.headers.get('accept') || '';
+  if (!path.startsWith('/api') && !auth && accept.includes('text/html'))
+    return NextResponse.redirect(new URL('/login', req.url));
   return new NextResponse('Authentication required', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Cabinet", charset="UTF-8"', 'Cache-Control': 'no-store' } });
 }
 
