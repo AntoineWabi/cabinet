@@ -155,7 +155,7 @@ img { -webkit-user-drag: none; user-select: none; }
   object-fit: cover;
   filter: blur(90px) grayscale(1) brightness(1.55);
   transform: scale(1.4);
-  opacity: 0.12;
+  opacity: 0;
   animation: bd-in 600ms ease;
 }
 @keyframes bd-in { from { opacity: 0; } }

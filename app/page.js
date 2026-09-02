@@ -61,7 +61,6 @@ export default function Home() {
 
   return (
     <main className="hub">
-      <Backdrop item={active} />
       <header className="hub-top">
         <b className="brand">CABINET<i>•</i></b>
         <div className="hub-top-right">
