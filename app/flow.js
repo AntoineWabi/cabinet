@@ -17,9 +17,9 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
     const mid = el.scrollLeft + el.clientWidth / 2;
     const slots = el.children;
     let best = 0, bestD = Infinity;
-    // Books take Stacks' steeper fan (rotY to ~62deg) so spines and page
-    // blocks swing out from behind the foreshortened front cover.
-    const maxRot = kind === 'book' ? 62 : 44;
+    // Books take Stacks' fan: 55deg on narrow screens, 70deg on desktop, so
+    // spines and page blocks swing out from behind the foreshortened cover.
+    const maxRot = kind === 'book' ? (el.clientWidth < 640 ? 55 : 70) : 44;
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
       const center = slot.offsetLeft + cardW / 2;
@@ -32,11 +32,11 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       const inner = slot.firstChild;
       inner.style.transform = `perspective(1000px) translateZ(${z}px) rotateY(${rotY}deg) translateY(${-lift}px)`;
       inner.style.zIndex = String(100 - Math.round(Math.abs(cc) * 10));
-      // Rear walls: hidden only near head-on, where they are occluded by the
-      // front cover and Blink can mis-sort them over it; visible once the
-      // card angles, so fanned books/tapes never look hollow. Angle-driven
-      // (not React active state) so it tracks mid-swipe poses.
-      const rw = inner.querySelector('.bk-back-inner, .tp-back-inner');
+      // Rear planes: hidden only near head-on, where the front cover fully
+      // occludes them and Blink can mis-sort a rear plane over the front;
+      // visible once the card angles, so fanned books/tapes stay solid.
+      // Angle-driven (not React state) so it tracks mid-swipe poses.
+      const rw = inner.querySelector('.bk-back, .tp-back-inner');
       if (rw) rw.style.visibility = Math.abs(rotY) < 12 ? 'hidden' : '';
       const disc = inner.querySelector('.vy-disc');
       if (disc) disc.style.transform = `translateX(-50%) translateY(${Math.abs(cc) < 0.5 ? -46 : 2}%)`;
@@ -121,20 +121,32 @@ export function Cover({ item, cardW, ratio, kind, flat }) {
 
   if (kind === 'book') {
     const bd = Math.max(24, Math.round(cardW * 0.14));
+    const tint = blankTint(item.title);
+    const author = (item.creator || '').toUpperCase();
     return (
       <div className="cf-card bk" style={{ width: cardW, aspectRatio: ratio, '--bd': `${bd}px` }}>
-        <div className="bk-spine">
-          <span className="bk-spine-author">{(item.creator || '').toUpperCase()}</span>
-          <span className="bk-spine-title">{item.title}</span>
+        <div className="bk-pages" />
+        <div className="bk-pages-t" />
+        <div className="bk-pages-b" />
+        <div className="bk-edge bk-edge-r" style={{ background: tint }} />
+        <div className="bk-edge bk-edge-l" style={{ background: tint }} />
+        <div className="bk-edge bk-edge-t" style={{ background: tint }} />
+        <div className="bk-edge bk-edge-b" style={{ background: tint }} />
+        <div className="bk-spine" style={{ background: tint }}>
+          <span className="bk-spine-text">
+            <span className="bk-spine-author">{author}</span>
+            <span className="bk-spine-title">{item.title}</span>
+          </span>
           <i />
         </div>
-        <div className="bk-pages" />
-        <div className="bk-back-inner" style={{ background: blankTint(item.title) }} />
-        <div className="bk-back" style={{ background: blankTint(item.title) }}>
-          <span className="bk-back-author">{(item.creator || '').toUpperCase()}</span>
+        <div className="bk-back" style={{ background: tint }}>
+          <span className="bk-back-author">{author}</span>
           <span className="bk-back-title">{item.title}</span>
         </div>
-        <div className="bk-front" style={{ background: blankTint(item.title) }}>{art}</div>
+        <div className="bk-front" style={{ background: tint }}>
+          <i className="bk-sheen" />
+          {art}
+        </div>
       </div>
     );
   }
