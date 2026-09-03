@@ -19,7 +19,8 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
     let best = 0, bestD = Infinity;
     // Books take Stacks' fan: 55deg on narrow screens, 70deg on desktop, so
     // spines and page blocks swing out from behind the foreshortened cover.
-    const maxRot = kind === 'book' ? (el.clientWidth < 640 ? 55 : 70) : 44;
+    const narrow = el.clientWidth < 640;
+    const maxRot = kind === 'book' ? (narrow ? 55 : 70) : 44;
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
       const center = slot.offsetLeft + cardW / 2;
@@ -27,16 +28,19 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       if (Math.abs(c) < bestD) { bestD = Math.abs(c); best = i; }
       const cc = Math.max(-4, Math.min(4, c));
       const rotY = Math.max(-(maxRot + 8), Math.min(maxRot + 8, -cc * maxRot));
-      const z = -Math.min(150, Math.abs(cc) * 78);
+      const z = -Math.min(150, Math.abs(cc) * (kind === 'book' ? (narrow ? 34 : 50) : 78));
       const lift = Math.abs(cc) < 0.5 ? (0.5 - Math.abs(cc)) * 12 : 0;
+      // Books: Stacks clusters neighbours behind the active book at 0.7/0.75
+      // scale, so fanned books tuck in instead of spreading into side views.
+      const scl = kind === 'book' ? 1 - Math.min(1, Math.abs(cc)) * (narrow ? 0.3 : 0.25) : 1;
       const inner = slot.firstChild;
-      inner.style.transform = `perspective(1000px) translateZ(${z}px) rotateY(${rotY}deg) translateY(${-lift}px)`;
+      inner.style.transform = `perspective(1000px) translateZ(${z}px) rotateY(${rotY}deg) translateY(${-lift}px) scale(${scl})`;
       inner.style.zIndex = String(100 - Math.round(Math.abs(cc) * 10));
       // Rear planes: hidden only near head-on, where the front cover fully
       // occludes them and Blink can mis-sort a rear plane over the front;
       // visible once the card angles, so fanned books/tapes stay solid.
       // Angle-driven (not React state) so it tracks mid-swipe poses.
-      const rw = inner.querySelector('.bk-back, .tp-back-inner');
+      const rw = inner.querySelector('.tp-back-inner');
       if (rw) rw.style.visibility = Math.abs(rotY) < 12 ? 'hidden' : '';
       const disc = inner.querySelector('.vy-disc');
       if (disc) disc.style.transform = `translateX(-50%) translateY(${Math.abs(cc) < 0.5 ? -46 : 2}%)`;

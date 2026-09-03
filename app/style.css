@@ -734,7 +734,10 @@ img { -webkit-user-drag: none; user-select: none; }
   inset: 0;
   transform: rotateY(180deg) translateZ(calc(var(--bd) / 2));
   border-radius: 2px;
-  backface-visibility: visible;
+  /* Culled in the fan (it is always occluded by front+pages there); it only
+     faces the viewer when a book is spun past 90deg. A visible-backface rear
+     plane gets mis-sorted over the front cover by Blink at fan angles. */
+  backface-visibility: hidden;
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
