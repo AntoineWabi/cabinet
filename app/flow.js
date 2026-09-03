@@ -32,6 +32,12 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       const inner = slot.firstChild;
       inner.style.transform = `perspective(1000px) translateZ(${z}px) rotateY(${rotY}deg) translateY(${-lift}px)`;
       inner.style.zIndex = String(100 - Math.round(Math.abs(cc) * 10));
+      // Rear walls: hidden only near head-on, where they are occluded by the
+      // front cover and Blink can mis-sort them over it; visible once the
+      // card angles, so fanned books/tapes never look hollow. Angle-driven
+      // (not React active state) so it tracks mid-swipe poses.
+      const rw = inner.querySelector('.bk-back-inner, .tp-back-inner');
+      if (rw) rw.style.visibility = Math.abs(rotY) < 12 ? 'hidden' : '';
       const disc = inner.querySelector('.vy-disc');
       if (disc) disc.style.transform = `translateX(-50%) translateY(${Math.abs(cc) < 0.5 ? -46 : 2}%)`;
     }
@@ -123,9 +129,7 @@ export function Cover({ item, cardW, ratio, kind, flat }) {
           <i />
         </div>
         <div className="bk-pages" />
-        {/* Front-facing rear wall: Blink mis-sorts it over the front on the
-            head-on (active) book, where it is fully occluded anyway. */}
-        {!flat && <div className="bk-back-inner" style={{ background: blankTint(item.title) }} />}
+        <div className="bk-back-inner" style={{ background: blankTint(item.title) }} />
         <div className="bk-back" style={{ background: blankTint(item.title) }}>
           <span className="bk-back-author">{(item.creator || '').toUpperCase()}</span>
           <span className="bk-back-title">{item.title}</span>
@@ -142,6 +146,7 @@ export function Cover({ item, cardW, ratio, kind, flat }) {
         <div className="tp-spine"><span>{(item.title || '').toUpperCase()}</span></div>
         <div className="tp-top"><i /><i /><i /></div>
         <div className="tp-side" />
+        <div className="tp-back-inner" />
         <div className="tp-front">
           <div className="tp-sticker">{art}</div>
           <div className="tp-label"><b>{item.title}</b><span>{[item.creator, item.metadata?.year].filter(Boolean).join(' · ')}</span></div>

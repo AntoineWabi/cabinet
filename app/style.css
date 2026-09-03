@@ -796,6 +796,16 @@ img { -webkit-user-drag: none; user-select: none; }
   border-radius: 6px 6px 0 0;
 }
 .tp-top i { display: block; height: 1px; background: rgba(0, 0, 0, 0.5); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05); }
+/* Rear wall, front-facing: closes the hollow back of a fanned tape.
+   Hidden near head-on by the pose loop (occluded there; avoids the Blink
+   rear-plane mis-sort). */
+.tp-back-inner {
+  inset: 0;
+  transform: translateZ(calc(var(--bd) / -2 + 1px));
+  background: #1d1b1a;
+  border-radius: 6px;
+  backface-visibility: hidden;
+}
 .tp-side {
   top: 0; bottom: 0; right: 0;
   width: var(--bd);
