@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 // from the Vinyl/Stacks prototypes: rotY ±52°, translateZ to -150, and only
 // the centered card lifts. Scrolling drives every card's transform directly
 // (no React re-render); React only learns the active index for the caption.
-export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, footer }) {
+export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, footer, kind }) {
   const row = useRef(null);
   const raf = useRef(0);
   const [active, setActive] = useState(-1);
@@ -29,6 +29,8 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       const inner = slot.firstChild;
       inner.style.transform = `perspective(1000px) translateZ(${z}px) rotateY(${rotY}deg) translateY(${-lift}px)`;
       inner.style.zIndex = String(100 - Math.round(Math.abs(cc) * 10));
+      const disc = inner.querySelector('.vy-disc');
+      if (disc) disc.style.transform = `translateX(-50%) translateY(${Math.abs(cc) < 0.5 ? -46 : 2}%)`;
     }
     setActive((a) => (a === best ? a : best));
   }, [STEP, cardW]);
@@ -82,7 +84,7 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
           onClick={() => (i === active ? onPick?.(it) : goTo(i))}
         >
           <div className="cf-3d">
-            <Cover item={it} cardW={cardW} ratio={ratio} />
+            <Cover item={it} cardW={cardW} ratio={ratio} kind={kind} />
             {footer?.(it, i === active)}
           </div>
         </div>
@@ -91,19 +93,60 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
   );
 }
 
-export function Cover({ item, cardW, ratio }) {
+export function Cover({ item, cardW, ratio, kind }) {
   const [bad, setBad] = useState(false);
-  return (
-    <div className="cf-card" style={{ width: cardW, aspectRatio: ratio }}>
-      {item.image_url && !bad ? (
-        <img src={item.image_url} alt="" draggable={false} onError={() => setBad(true)} />
-      ) : (
-        <div className="cf-blank" style={{ background: blankTint(item.title) }}>
-          <strong>{item.title}</strong>
-          <span>{item.creator || item.type}</span>
+  const art = item.image_url && !bad
+    ? <img src={item.image_url} alt="" draggable={false} onError={() => setBad(true)} />
+    : <div className="cf-blank" style={{ background: blankTint(item.title) }}>
+        <strong>{item.title}</strong>
+        <span>{item.creator || item.type}</span>
+      </div>;
+
+  if (kind === 'book') {
+    const bd = Math.max(24, Math.round(cardW * 0.14));
+    return (
+      <div className="cf-card bk" style={{ width: cardW, aspectRatio: ratio, '--bd': `${bd}px` }}>
+        <div className="bk-spine">
+          <span className="bk-spine-author">{(item.creator || '').toUpperCase()}</span>
+          <span className="bk-spine-title">{item.title}</span>
+          <i />
         </div>
-      )}
-    </div>
+        <div className="bk-pages" />
+        <div className="bk-back" style={{ background: blankTint(item.title) }} />
+        <div className="bk-front">{art}</div>
+      </div>
+    );
+  }
+
+  if (kind === 'tape') {
+    const bd = Math.max(22, Math.round(cardW * 0.14));
+    return (
+      <div className="cf-card tp" style={{ width: cardW, aspectRatio: ratio, '--bd': `${bd}px` }}>
+        <div className="tp-spine"><span>{(item.title || '').toUpperCase()}</span></div>
+        <div className="tp-top"><i /><i /><i /></div>
+        <div className="tp-side" />
+        <div className="tp-front">
+          <div className="tp-sticker">{art}</div>
+          <div className="tp-label"><b>{item.title}</b><span>{[item.creator, item.metadata?.year].filter(Boolean).join(' · ')}</span></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === 'sleeve') {
+    return (
+      <>
+        <div className="vy-disc" style={item.image_url && !bad ? { backgroundImage: `url(${item.image_url})` } : {}} />
+        <div className="cf-card vy" style={{ width: cardW, aspectRatio: ratio }}>
+          {art}
+          <div className="vy-sheen" />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="cf-card" style={{ width: cardW, aspectRatio: ratio }}>{art}</div>
   );
 }
 
