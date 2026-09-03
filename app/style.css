@@ -206,6 +206,10 @@ img { -webkit-user-drag: none; user-select: none; }
   overflow: hidden;
   background: #dcd9d3;
   box-shadow: var(--shadow-card);
+}
+/* Chrome drops a box-reflect:none override and reflection flattens
+   preserve-3d children, so 3D kinds never get the property at all. */
+.cf-card:not(.bk):not(.tp) {
   -webkit-box-reflect: below 8px linear-gradient(transparent 62%, rgba(0, 0, 0, 0.22));
 }
 .cf-card img {
@@ -589,6 +593,7 @@ img { -webkit-user-drag: none; user-select: none; }
    page block on the right, so the fan reveals spines and pages as it turns. */
 .cf-card.bk {
   position: relative;
+  overflow: visible;
   transform-style: preserve-3d;
   border-radius: 0;
   box-shadow: none;
@@ -609,7 +614,7 @@ img { -webkit-user-drag: none; user-select: none; }
   top: 0; bottom: 0; left: 0;
   width: var(--bd);
   transform-origin: left center;
-  transform: translateZ(calc(var(--bd) / 2)) rotateY(90deg);
+  transform: translateZ(calc(var(--bd) / -2)) rotateY(-90deg);
   background: linear-gradient(to right, #33302b, #4a463f 35%, #2e2b27);
   display: flex;
   flex-direction: column;
@@ -660,6 +665,7 @@ img { -webkit-user-drag: none; user-select: none; }
    face, grooved top edge, cream spine label with the title in Courier. */
 .cf-card.tp {
   position: relative;
+  overflow: visible;
   transform-style: preserve-3d;
   border-radius: 0;
   box-shadow: none;
@@ -718,7 +724,7 @@ img { -webkit-user-drag: none; user-select: none; }
   top: 0; bottom: 0; left: 0;
   width: var(--bd);
   transform-origin: left center;
-  transform: translateZ(calc(var(--bd) / 2)) rotateY(90deg);
+  transform: translateZ(calc(var(--bd) / -2)) rotateY(-90deg);
   background: #f2efe5;
   display: flex;
   align-items: center;

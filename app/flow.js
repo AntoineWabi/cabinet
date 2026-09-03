@@ -17,13 +17,16 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
     const mid = el.scrollLeft + el.clientWidth / 2;
     const slots = el.children;
     let best = 0, bestD = Infinity;
+    // Books take Stacks' steeper fan (rotY to ~62deg) so spines and page
+    // blocks swing out from behind the foreshortened front cover.
+    const maxRot = kind === 'book' ? 62 : 44;
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
       const center = slot.offsetLeft + cardW / 2;
       const c = (center - mid) / STEP;
       if (Math.abs(c) < bestD) { bestD = Math.abs(c); best = i; }
       const cc = Math.max(-4, Math.min(4, c));
-      const rotY = Math.max(-52, Math.min(52, -cc * 44));
+      const rotY = Math.max(-(maxRot + 8), Math.min(maxRot + 8, -cc * maxRot));
       const z = -Math.min(150, Math.abs(cc) * 78);
       const lift = Math.abs(cc) < 0.5 ? (0.5 - Math.abs(cc)) * 12 : 0;
       const inner = slot.firstChild;
@@ -33,7 +36,7 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       if (disc) disc.style.transform = `translateX(-50%) translateY(${Math.abs(cc) < 0.5 ? -46 : 2}%)`;
     }
     setActive((a) => (a === best ? a : best));
-  }, [STEP, cardW]);
+  }, [STEP, cardW, kind]);
 
   const onScroll = useCallback(() => {
     cancelAnimationFrame(raf.current);
