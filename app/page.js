@@ -5,7 +5,7 @@ import Flow from './flow';
 const TYPES = [
   { id: 'album', label: 'Music', cardW: 228, ratio: '1/1', overlap: 76, kind: 'sleeve' },
   { id: 'book', label: 'Books', cardW: 184, ratio: '2/3', overlap: 40, kind: 'book' },
-  { id: 'movie', label: 'Movies', cardW: 252, ratio: '7/4', overlap: 62, kind: 'tape' },
+  { id: 'movie', label: 'Movies', cardW: 190, ratio: '2/3', overlap: 46, kind: 'tape' },
 ];
 const TYPE_LABEL = { album: 'ALBUM', book: 'BOOK', movie: 'FILM' };
 

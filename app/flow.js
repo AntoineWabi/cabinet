@@ -77,7 +77,15 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
       className="cf-row"
       ref={row}
       onScroll={onScroll}
-      style={{ '--step': `${STEP}px`, '--half': `${STEP / 2}px` }}
+      style={{
+        '--step': `${STEP}px`,
+        '--half': `${STEP / 2}px`,
+        // Sleeves need vertical room: the row's overflow-x clips vertically
+        // too, so pad for the disc peeking above and the reflection below.
+        ...(kind === 'sleeve'
+          ? { '--padT': `${Math.round(cardW * 0.48)}px` }
+          : {}),
+      }}
     >
       {items.map((it, i) => (
         <div
@@ -87,7 +95,7 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
           onClick={() => (i === active ? onPick?.(it) : goTo(i))}
         >
           <div className="cf-3d">
-            <Cover item={it} cardW={cardW} ratio={ratio} kind={kind} />
+            <Cover item={it} cardW={cardW} ratio={ratio} kind={kind} flat={i === active} />
             {footer?.(it, i === active)}
           </div>
         </div>
@@ -96,7 +104,7 @@ export default function Flow({ items, cardW, ratio, overlap, onActive, onPick, f
   );
 }
 
-export function Cover({ item, cardW, ratio, kind }) {
+export function Cover({ item, cardW, ratio, kind, flat }) {
   const [bad, setBad] = useState(false);
   const art = item.image_url && !bad
     ? <img src={item.image_url} alt="" draggable={false} onError={() => setBad(true)} />
@@ -115,8 +123,14 @@ export function Cover({ item, cardW, ratio, kind }) {
           <i />
         </div>
         <div className="bk-pages" />
-        <div className="bk-back" style={{ background: blankTint(item.title) }} />
-        <div className="bk-front">{art}</div>
+        {/* Front-facing rear wall: Blink mis-sorts it over the front on the
+            head-on (active) book, where it is fully occluded anyway. */}
+        {!flat && <div className="bk-back-inner" style={{ background: blankTint(item.title) }} />}
+        <div className="bk-back" style={{ background: blankTint(item.title) }}>
+          <span className="bk-back-author">{(item.creator || '').toUpperCase()}</span>
+          <span className="bk-back-title">{item.title}</span>
+        </div>
+        <div className="bk-front" style={{ background: blankTint(item.title) }}>{art}</div>
       </div>
     );
   }
