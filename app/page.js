@@ -63,7 +63,7 @@ export default function Home() {
   }
 
   return (
-    <main className={`hub mobile-${mobileView}`}>
+    <main className={`hub view-${mobileView}`}>
       <header className="hub-top">
         <b className="brand">CABINET<i>•</i></b>
         <div className="hub-top-right">
