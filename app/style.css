@@ -965,3 +965,6 @@ img { -webkit-user-drag: none; user-select: none; }
   .sheet { max-height: 88dvh; background: #f7f7f5; border-radius: 28px 28px 0 0; }
   .sheet::before { content:''; width:38px; height:4px; border-radius:99px; background:#c8c6c1; align-self:center; margin-top:-8px; }
 }
+@media (max-width: 720px) {
+  .hub > .detail-page { position: fixed; inset: 0; }
+}
