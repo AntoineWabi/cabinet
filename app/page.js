@@ -63,7 +63,7 @@ export default function Home() {
   }
 
   return (
-    <main className="hub">
+    <main className={`hub mobile-${mobileView}`}>
       <header className="hub-top">
         <b className="brand">CABINET<i>•</i></b>
         <div className="hub-top-right">
@@ -74,6 +74,7 @@ export default function Home() {
           <button className="add-btn" aria-label="Add" onClick={() => setAddOpen(true)}>+</button>
         </div>
       </header>
+      <div className="mobile-controlbar">
       <nav className="hub-typenav">
         {TYPES.map((t) => (
           <button key={t.id} className={type === t.id ? 'on' : ''} onClick={() => setType(t.id)}>
@@ -82,13 +83,14 @@ export default function Home() {
         ))}
         {type === 'album' && <a className="deck-link" href="/deck" title="Turntable">◉</a>}
       </nav>
-
-      <section className="mobile-library">
         <div className="mobile-viewbar" aria-label="Choose library view">
           <button className={mobileView === 'grid' ? 'on' : ''} onClick={() => setMobileView('grid')}>Grid</button>
           <button className={mobileView === 'time' ? 'on' : ''} onClick={() => setMobileView('time')}>Time</button>
           <button className={mobileView === 'flow' ? 'on' : ''} onClick={() => setMobileView('flow')}>Flow</button>
         </div>
+      </div>
+
+      <section className="mobile-library">
         {loading ? <div className="hub-empty"><p>Loading your cabinet…</p></div> : list.length ? (
           mobileView === 'grid' ? <MobileGrid items={list} onPick={(x) => { setActive(x); setDetail(x); }} /> :
           mobileView === 'time' ? <MobileTimeList items={list} onPick={(x) => { setActive(x); setDetail(x); }} /> :
