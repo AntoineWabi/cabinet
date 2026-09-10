@@ -55,5 +55,6 @@ async function albums(q) {
     image_url: (a.artworkUrl100 || '').replace('100x100bb', '600x600bb') || null,
     external_url: a.collectionViewUrl,
     external_id: String(a.collectionId),
+    metadata: { year: (a.releaseDate || '').slice(0, 4) || undefined, duration_mins: a.trackCount ? Math.round(a.trackCount * 3.8) : undefined },
   }));
 }
