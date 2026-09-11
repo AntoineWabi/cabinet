@@ -7,7 +7,7 @@ import DetailModal from "./components/detail-modal";
 import AddDialog from "./components/add-dialog";
 import SearchDialog from "./components/search-dialog";
 import SettingsDialog from "./components/settings-dialog";
-import { MEDIA_TYPES, mediaType, inCollection, isLiked } from "../lib/media";
+import { MEDIA_TYPES, mediaType, inCollection, isLiked, bookShelfOf, BOOK_SHELVES } from "../lib/media";
 import {
   DEFAULT_DISPLAY,
   DISPLAY_KEY,
@@ -22,6 +22,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
   const [type, setType] = useState("album");
+  const [bookShelf, setBookShelf] = useState("want-to-read");
   const [active, setActive] = useState(null);
   const [overlay, setOverlay] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -51,13 +52,27 @@ export default function Home() {
   const list = useMemo(
     () =>
       arrangeCollection(
-        collection.filter((item) => item.type === type),
+        collection.filter(
+          (item) =>
+            item.type === type &&
+            (type !== "book" || bookShelf === "all" || bookShelfOf(item) === bookShelf),
+        ),
         display[type]?.sort,
         palette,
       ),
-    [collection, type, display, palette],
+    [collection, type, bookShelf, display, palette],
   );
   const likedItems = useMemo(() => collection.filter(isLiked), [collection]);
+  const bookShelfCounts = useMemo(() => {
+    const books = collection.filter((item) => item.type === "book");
+    return Object.fromEntries([
+      ["all", books.length],
+      ...BOOK_SHELVES.map((shelf) => [
+        shelf.id,
+        books.filter((item) => bookShelfOf(item) === shelf.id).length,
+      ]),
+    ]);
+  }, [collection]);
   const current = list.find((item) => item.id === active?.id) || list[0];
   const index = current ? list.findIndex((item) => item.id === current.id) : 0;
   const counts = useMemo(
@@ -362,6 +377,21 @@ export default function Home() {
         </div>
       </header>
 
+      {type === "book" && !loading && !error && (
+        <nav className="book-shelves" aria-label="Book shelves">
+          {[{ id: "all", label: "All books" }, ...BOOK_SHELVES].map((shelf) => (
+            <button
+              key={shelf.id}
+              className={bookShelf === shelf.id ? "on" : ""}
+              aria-pressed={bookShelf === shelf.id}
+              onClick={() => setBookShelf(shelf.id)}
+            >
+              <span>{shelf.label}</span><b>{bookShelfCounts[shelf.id] || 0}</b>
+            </button>
+          ))}
+        </nav>
+      )}
+
       <section
         id="collection-panel"
         className="collection-panel"
@@ -388,6 +418,7 @@ export default function Home() {
             key={`${type}-${jump}`}
             items={list}
             type={type}
+            shelf={bookShelf}
             scrollPositions={gridScroll}
             onPick={openDetail}
           />
