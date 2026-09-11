@@ -7,7 +7,8 @@
     "start": "next start",
     "test:ui": "node scripts/check-cabinet.mjs",
     "test:collection": "node scripts/check-personal-collection.mjs",
-    "test:visual": "node scripts/visual-check.mjs"
+    "test:visual": "node scripts/visual-check.mjs",
+    "test:shelves": "node scripts/check-book-shelves.mjs"
   },
   "dependencies": {
     "@vercel/postgres": "latest",
