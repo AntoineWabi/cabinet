@@ -40,6 +40,7 @@ export async function PATCH(request, { params }) {
   const metadata = {};
   if (body.archived !== undefined) metadata.cabinet_archived = body.archived;
   if (body.liked !== undefined) metadata.cabinet_liked = body.liked;
+  if (body.shelf !== undefined) metadata.cabinet_shelf = String(body.shelf).slice(0, 80);
   if (body.completed !== undefined) metadata.cabinet_completed = body.completed;
   if (body.year !== undefined) metadata.year = String(body.year).slice(0, 40);
   if (localPreview()) {

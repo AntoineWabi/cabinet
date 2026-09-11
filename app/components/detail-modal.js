@@ -371,7 +371,14 @@ export default function DetailModal({
                 className="glass like-toggle"
                 aria-pressed={liked}
                 disabled={saving}
-                onClick={() => mark({ liked: !liked })}
+                onClick={() =>
+                  mark({
+                    liked: !liked,
+                    ...(item.type === "book" && !liked
+                      ? { shelf: "want-to-read" }
+                      : {}),
+                  })
+                }
               >
                 <Icon
                   name="heart"

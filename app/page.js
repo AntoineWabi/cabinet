@@ -55,7 +55,7 @@ export default function Home() {
         collection.filter(
           (item) =>
             item.type === type &&
-            (type !== "book" || bookShelf === "all" || bookShelfOf(item) === bookShelf),
+            (type !== "book" || bookShelf === "all" || bookShelfOf(item) === "want-to-read" || isLiked(item)),
         ),
         display[type]?.sort,
         palette,
@@ -65,13 +65,12 @@ export default function Home() {
   const likedItems = useMemo(() => collection.filter(isLiked), [collection]);
   const bookShelfCounts = useMemo(() => {
     const books = collection.filter((item) => item.type === "book");
-    return Object.fromEntries([
-      ["all", books.length],
-      ...BOOK_SHELVES.map((shelf) => [
-        shelf.id,
-        books.filter((item) => bookShelfOf(item) === shelf.id).length,
-      ]),
-    ]);
+    return {
+      all: books.length,
+      "want-to-read": books.filter(
+        (item) => bookShelfOf(item) === "want-to-read" || isLiked(item),
+      ).length,
+    };
   }, [collection]);
   const current = list.find((item) => item.id === active?.id) || list[0];
   const index = current ? list.findIndex((item) => item.id === current.id) : 0;
@@ -379,7 +378,7 @@ export default function Home() {
 
       {type === "book" && !loading && !error && (
         <nav className="book-shelves" aria-label="Book shelves">
-          {[{ id: "all", label: "All books" }, ...BOOK_SHELVES].map((shelf) => (
+          {[{ id: "all", label: "All books" }, BOOK_SHELVES[0]].map((shelf) => (
             <button
               key={shelf.id}
               className={bookShelf === shelf.id ? "on" : ""}
