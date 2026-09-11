@@ -42,6 +42,12 @@ export async function PATCH(request, { params }) {
   if (body.liked !== undefined) metadata.cabinet_liked = body.liked;
   if (body.completed !== undefined) metadata.cabinet_completed = body.completed;
   if (body.year !== undefined) metadata.year = String(body.year).slice(0, 40);
+  if (body.pages !== undefined) {
+    const pages = Number(body.pages);
+    if (!Number.isInteger(pages) || pages < 1 || pages > 10000)
+      return new Response("Invalid page count", { status: 400 });
+    metadata.pages = pages;
+  }
   if (localPreview()) {
     const updated = await mutateLocalCollection((items) => {
       const item = items.find((entry) => entry.id === id);

@@ -57,16 +57,15 @@ export default function MediaObject({
   const type = item.type;
   const ratio =
     type === "album" ? 1 : type === "movie" ? 0.66 : colors.aspectRatio;
-  const depth =
-    type === "movie"
-      ? height * 0.131
-      : Math.max(
-          18,
-          Math.min(
-            40,
-            (Number(item.metadata?.pages) || 280) * 0.045 + height * 0.045,
-          ),
-        );
+  const pageCount = Number(item.metadata?.pages);
+  // Books grow from a slim 18px paperback to a 46px tome. The square-root
+  // curve keeps ordinary novels distinct without letting very long books
+  // overwhelm the shelf. Unknown editions use a neutral 280-page depth.
+  const bookDepth = Math.max(
+    18,
+    Math.min(46, 11 + Math.sqrt(pageCount || 280) * 1.12),
+  );
+  const depth = type === "movie" ? height * 0.131 : bookDepth;
   const style = {
     width: height * ratio,
     height,
