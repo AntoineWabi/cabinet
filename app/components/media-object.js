@@ -124,7 +124,16 @@ export default function MediaObject({
           <div className="media-front object-face">
             <Artwork item={item} />
             <i className="cover-sheen" />
-            {type === "movie" && <span className="tape-seam" />}
+            {type === "movie" && (
+              <>
+                <span className="tape-seam" />
+                <span className="vhs-label">
+                  <small>Cabinet Video</small>
+                  <b>{item.metadata?.year || item.year || "VHS"}</b>
+                  <i>SP</i>
+                </span>
+              </>
+            )}
           </div>
         </>
       )}
