@@ -25,6 +25,8 @@ export async function PATCH(request, { params }) {
   for (const field of ["archived", "liked", "completed"])
     if (body[field] !== undefined && typeof body[field] !== "boolean")
       return new Response("Invalid collection action", { status: 400 });
+  if (body.shelf !== undefined && body.shelf !== "want-to-read")
+    return new Response("Invalid book shelf", { status: 400 });
   if (
     body.title !== undefined &&
     (typeof body.title !== "string" || !body.title.trim())
