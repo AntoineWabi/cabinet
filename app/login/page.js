@@ -19,7 +19,7 @@ export default function Login() {
   return (
     <main className="login">
       <form className="login-card" onSubmit={submit}>
-        <b className="brand">CABINET<i>•</i></b>
+        <b className="brand">Cabinet<i>•</i></b>
         <input name="username" autoComplete="username" placeholder="Username" required />
         <input name="password" type="password" autoComplete="current-password" placeholder="Password" required />
         {err && <p className="login-err">That didn’t work. Try again.</p>}

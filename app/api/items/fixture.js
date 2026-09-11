@@ -1,17 +1,354 @@
-// Dev-only fixture for local visual testing (CABINET_OPEN=1, no database).
+// Local preview only. Reference artwork and sample titles from the three supplied prototypes.
 export const FIXTURE = [
-  { id: 'a1', type: 'album', state: 'queued', title: 'Marzipan', creator: 'Charif Megarbane', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/86/52/7a/86527a5d-cbfd-0988-418a-ea6627b29a33/4018939572273.png/600x600bb.jpg', metadata: { year: '2023', note: 'Instrumental Mediterranean funk from your list.' }, created_at: '2026-08-30T00:00:00Z' },
-  { id: 'a2', type: 'album', state: 'queued', title: 'Solo Monk', creator: 'Thelonious Monk', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/f8/65/e9/f865e942-9d3d-c904-a936-bc8d9efd7dcf/mzi.knkkbqhj.jpg/600x600bb.jpg', metadata: { year: '1965' }, created_at: '2026-08-30T00:01:00Z' },
-  { id: 'a3', type: 'album', state: 'queued', title: 'Coltrane Plays the Blues', creator: 'John Coltrane', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music3/v4/17/64/96/176496fe-2b0f-bb66-43ba-f2e26c0e90b9/603497893386.jpg/600x600bb.jpg', metadata: { year: '1962' }, created_at: '2026-08-30T00:02:00Z' },
-  { id: 'a4', type: 'album', state: 'queued', title: 'Since I Left You', creator: 'The Avalanches', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a2/13/79/a2137927-8f49-fcb7-9cbf-09801fea7d26/06UMGIM72874.rgb.jpg/600x600bb.jpg', metadata: { year: '2000' }, created_at: '2026-08-30T00:03:00Z' },
-  { id: 'a5', type: 'album', state: 'queued', title: "Getz/Gilberto ’76", creator: 'Stan Getz & João Gilberto', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/50/6e/ef/506eef67-aaf1-3f8a-36f3-4391a124ebca/889326507130_Cover.jpg/600x600bb.jpg', metadata: { year: '2016' }, created_at: '2026-08-30T00:04:00Z' },
-  { id: 'a6', type: 'album', state: 'queued', title: 'Ritual', creator: 'Nico Gomez and His Afro Percussion Inc.', image_url: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/62/8a/7d/628a7d50-6f03-7b05-7439-aa73896299e2/S100181267.jpg/600x600bb.jpg', metadata: {}, created_at: '2026-08-30T00:05:00Z' },
-  { id: 'a7', type: 'album', state: 'queued', title: 'Marzipan Nights vol. 2 — The Long Title Edition', creator: 'Charif Megarbane', image_url: null, metadata: { year: '2024', note: 'A deliberately long title to test wrapping in the caption area.' }, created_at: '2026-08-30T00:06:00Z' },
-  { id: 'b1', type: 'book', state: 'queued', title: 'Black Sun', creator: 'Julia Kristeva', image_url: 'https://covers.openlibrary.org/b/id/143911-L.jpg', metadata: {}, created_at: '2026-08-29T00:00:00Z' },
-  { id: 'b2', type: 'book', state: 'queued', title: 'Sapiens', creator: 'Yuval Noah Harari', image_url: 'https://covers.openlibrary.org/b/id/8634250-L.jpg', metadata: { year: '2011' }, created_at: '2026-08-29T00:01:00Z' },
-  { id: 'b3', type: 'book', state: 'queued', title: 'Akira', creator: 'Katsuhiro Otomo', image_url: 'https://covers.openlibrary.org/b/id/814967-L.jpg', metadata: {}, created_at: '2026-08-29T00:02:00Z' },
-  { id: 'b4', type: 'book', state: 'queued', title: "L'Arabe du futur", creator: 'Riad Sattouf', image_url: 'https://covers.openlibrary.org/b/id/10504773-L.jpg', metadata: {}, created_at: '2026-08-29T00:03:00Z' },
-  { id: 'm1', type: 'movie', state: 'queued', title: 'The Color of Pomegranates', creator: 'Sergei Parajanov', image_url: 'https://upload.wikimedia.org/wikipedia/en/c/c7/The_Color_of_Pomegranates_cover_art.jpg', metadata: { year: '1969' }, created_at: '2026-08-29T00:04:00Z' },
-  { id: 'm2', type: 'movie', state: 'queued', title: 'Easy Rider', creator: 'Dennis Hopper', image_url: 'https://upload.wikimedia.org/wikipedia/en/3/32/EasyRider.jpg', metadata: { year: '1969' }, created_at: '2026-08-29T00:05:00Z' },
-  { id: 'm3', type: 'movie', state: 'queued', title: 'Zidane: A 21st Century Portrait', creator: 'Douglas Gordon & Philippe Parreno', image_url: 'https://upload.wikimedia.org/wikipedia/en/d/d8/Zidane-movie.jpg', metadata: { year: '2006' }, created_at: '2026-08-29T00:06:00Z' },
+  {
+    "id": "demo-all-caps",
+    "title": "Madvillainy",
+    "creator": "Madvillain",
+    "year": "2004",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/all-caps.webp",
+    "external_url": "https://music.apple.com/us/search?term=Madvillainy%20Madvillain",
+    "metadata": {
+      "year": "2004"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-rapp-snitch",
+    "title": "MM..FOOD",
+    "creator": "MF DOOM",
+    "year": "2004",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/rapp-snitch.webp",
+    "external_url": "https://music.apple.com/us/search?term=MM..FOOD%20MF%20DOOM",
+    "metadata": {
+      "year": "2004"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-sinnerman",
+    "title": "Pastel Blues",
+    "creator": "Nina Simone",
+    "year": "1965",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/sinnerman.webp",
+    "external_url": "https://music.apple.com/us/search?term=Pastel%20Blues%20Nina%20Simone",
+    "metadata": {
+      "year": "1965"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-so-what",
+    "title": "Kind of Blue",
+    "creator": "Miles Davis",
+    "year": "1959",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/so-what.webp",
+    "external_url": "https://music.apple.com/us/search?term=Kind%20of%20Blue%20Miles%20Davis",
+    "metadata": {
+      "year": "1959"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-blue-train",
+    "title": "Blue Train",
+    "creator": "John Coltrane",
+    "year": "1958",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/blue-train.webp",
+    "external_url": "https://music.apple.com/us/search?term=Blue%20Train%20John%20Coltrane",
+    "metadata": {
+      "year": "1958"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-ny-state-of-mind",
+    "title": "Illmatic",
+    "creator": "Nas",
+    "year": "1994",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/ny-state-of-mind.webp",
+    "external_url": "https://music.apple.com/us/search?term=Illmatic%20Nas",
+    "metadata": {
+      "year": "1994"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-electric-relaxation",
+    "title": "Midnight Marauders",
+    "creator": "A Tribe Called Quest",
+    "year": "1993",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/electric-relaxation.webp",
+    "external_url": "https://music.apple.com/us/search?term=Midnight%20Marauders%20A%20Tribe%20Called%20Quest",
+    "metadata": {
+      "year": "1993"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-cream",
+    "title": "Enter the Wu-Tang (36 Chambers)",
+    "creator": "Wu-Tang Clan",
+    "year": "1993",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/cream.webp",
+    "external_url": "https://music.apple.com/us/search?term=Enter%20the%20Wu-Tang%20(36%20Chambers)%20Wu-Tang%20Clan",
+    "metadata": {
+      "year": "1993"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-donut-of-the-heart",
+    "title": "Donuts",
+    "creator": "J Dilla",
+    "year": "2006",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/donut-of-the-heart.webp",
+    "external_url": "https://music.apple.com/us/search?term=Donuts%20J%20Dilla",
+    "metadata": {
+      "year": "2006"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-satchidananda",
+    "title": "Journey in Satchidananda",
+    "creator": "Alice Coltrane",
+    "year": "1971",
+    "type": "album",
+    "state": "queued",
+    "image_url": "/demo/music/satchidananda.webp",
+    "external_url": "https://music.apple.com/us/search?term=Journey%20in%20Satchidananda%20Alice%20Coltrane",
+    "metadata": {
+      "year": "1971"
+    },
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "demo-designing-design",
+    "type": "book",
+    "state": "queued",
+    "title": "Designing Design",
+    "creator": "Kenya Hara",
+    "image_url": "/demo/books/designing-design.webp",
+    "external_url": "https://openlibrary.org/search?q=Designing%20Design",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-ways-of-seeing",
+    "type": "book",
+    "state": "queued",
+    "title": "Ways of Seeing",
+    "creator": "John Berger",
+    "image_url": "/demo/books/ways-of-seeing.webp",
+    "external_url": "https://openlibrary.org/search?q=Ways%20of%20Seeing",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-siddhartha",
+    "type": "book",
+    "state": "queued",
+    "title": "Siddhartha",
+    "creator": "Hermann Hesse",
+    "image_url": "/demo/books/siddhartha.webp",
+    "external_url": "https://openlibrary.org/search?q=Siddhartha",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-the-creative-act",
+    "type": "book",
+    "state": "queued",
+    "title": "The Creative Act",
+    "creator": "Rick Rubin",
+    "image_url": "/demo/books/the-creative-act.webp",
+    "external_url": "https://openlibrary.org/search?q=The%20Creative%20Act",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-on-color",
+    "type": "book",
+    "state": "queued",
+    "title": "On Color",
+    "creator": "David Scott Kastan with Stephen Farthing",
+    "image_url": "/demo/books/on-color.webp",
+    "external_url": "https://openlibrary.org/search?q=On%20Color",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-sapiens-a-brief-history-of-hum",
+    "type": "book",
+    "state": "queued",
+    "title": "Sapiens A Brief History of Humankind",
+    "creator": "Yuval Noah Harari",
+    "image_url": "/demo/books/sapiens-a-brief-history-of-hum.webp",
+    "external_url": "https://openlibrary.org/search?q=Sapiens%20A%20Brief%20History%20of%20Humankind",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-the-design-of-everyday-things",
+    "type": "book",
+    "state": "queued",
+    "title": "The Design of Everyday Things",
+    "creator": "Don Norman",
+    "image_url": "/demo/books/the-design-of-everyday-things.webp",
+    "external_url": "https://openlibrary.org/search?q=The%20Design%20of%20Everyday%20Things",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-100-whites",
+    "type": "book",
+    "state": "queued",
+    "title": "100 Whites",
+    "creator": "Kenya Hara",
+    "image_url": "/demo/books/100-whites.webp",
+    "external_url": "https://openlibrary.org/search?q=100%20Whites",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-the-elements-of-typographic-st",
+    "type": "book",
+    "state": "queued",
+    "title": "The Elements of Typographic Style",
+    "creator": "Robert Bringhurst",
+    "image_url": "/demo/books/the-elements-of-typographic-st.webp",
+    "external_url": "https://openlibrary.org/search?q=The%20Elements%20of%20Typographic%20Style",
+    "metadata": {},
+    "created_at": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "demo-alien",
+    "type": "movie",
+    "state": "queued",
+    "title": "Alien",
+    "creator": "Ridley Scott",
+    "image_url": "/demo/movies/alien.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Alien_(film)",
+    "metadata": {
+      "year": "1979",
+      "genre": "Horror"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-the-shining",
+    "type": "movie",
+    "state": "queued",
+    "title": "The Shining",
+    "creator": "Stanley Kubrick",
+    "image_url": "/demo/movies/the-shining.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/The_Shining_(film)",
+    "metadata": {
+      "year": "1980",
+      "genre": "Horror"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-blade-runner",
+    "type": "movie",
+    "state": "queued",
+    "title": "Blade Runner",
+    "creator": "Ridley Scott",
+    "image_url": "/demo/movies/blade-runner.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Blade_Runner",
+    "metadata": {
+      "year": "1982",
+      "genre": "Sci-Fi"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-et",
+    "type": "movie",
+    "state": "queued",
+    "title": "E.T.",
+    "creator": "Steven Spielberg",
+    "image_url": "/demo/movies/et.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/E.T._the_Extra-Terrestrial",
+    "metadata": {
+      "year": "1982",
+      "genre": "Family"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-ghostbusters",
+    "type": "movie",
+    "state": "queued",
+    "title": "Ghostbusters",
+    "creator": "Ivan Reitman",
+    "image_url": "/demo/movies/ghostbusters.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Ghostbusters_(1984_film)",
+    "metadata": {
+      "year": "1984",
+      "genre": "Comedy"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-back-to-the-future",
+    "type": "movie",
+    "state": "queued",
+    "title": "Back to the Future",
+    "creator": "Robert Zemeckis",
+    "image_url": "/demo/movies/back-to-the-future.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Back_to_the_Future",
+    "metadata": {
+      "year": "1985",
+      "genre": "Sci-Fi"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-akira",
+    "type": "movie",
+    "state": "queued",
+    "title": "Akira",
+    "creator": "Katsuhiro Otomo",
+    "image_url": "/demo/movies/akira.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Akira_(1988_film)",
+    "metadata": {
+      "year": "1988",
+      "genre": "Anime"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  },
+  {
+    "id": "demo-terminator-2",
+    "type": "movie",
+    "state": "queued",
+    "title": "Terminator 2",
+    "creator": "James Cameron",
+    "image_url": "/demo/movies/terminator-2.jpg",
+    "external_url": "https://en.wikipedia.org/wiki/Terminator_2",
+    "metadata": {
+      "year": "1991",
+      "genre": "Action"
+    },
+    "created_at": "2026-09-08T12:00:00Z"
+  }
 ];

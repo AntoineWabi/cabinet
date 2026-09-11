@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import Flow from '../flow';
+import Flow from '../legacy-flow';
+import '../legacy.css';
 
 // Music with the turntable kept: pick a record from the shelf, it lands on
 // the platter, the arm swings over, and a 30-second preview (Apple's keyless

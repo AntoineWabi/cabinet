@@ -1,6 +1,6 @@
 import './style.css';
 export const metadata = { title: 'Cabinet' };
-export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', userScalable: false };
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 export default function L({ children }) {
   return (
     <html lang="en">

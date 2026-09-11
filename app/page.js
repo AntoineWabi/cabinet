@@ -1,282 +1,515 @@
-'use client';
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import Flow from './flow';
-
-const TYPES = [
-  { id: 'album', label: 'Music', cardW: 228, ratio: '1/1', overlap: 76, kind: 'sleeve' },
-  { id: 'book', label: 'Books', cardW: 184, ratio: '2/3', overlap: 40, kind: 'book' },
-  { id: 'movie', label: 'Movies', cardW: 190, ratio: '2/3', overlap: 46, kind: 'tape' },
-];
-const TYPE_LABEL = { album: 'ALBUM', book: 'BOOK', movie: 'FILM' };
+"use client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Flow from "./flow";
+import CollectionGrid from "./components/collection-grid";
+import Icon from "./components/icons";
+import DetailModal from "./components/detail-modal";
+import AddDialog from "./components/add-dialog";
+import SearchDialog from "./components/search-dialog";
+import SettingsDialog from "./components/settings-dialog";
+import { MEDIA_TYPES, mediaType, inCollection, isLiked } from "../lib/media";
+import {
+  DEFAULT_DISPLAY,
+  DISPLAY_KEY,
+  normalizeDisplay,
+  arrangeCollection,
+} from "../lib/display-settings";
+import { analyzeCover } from "../lib/cover-analysis";
 
 export default function Home() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState(() => {
-    if (typeof window === 'undefined') return 'album';
-    const t = new URLSearchParams(window.location.search).get('type');
-    return TYPES.some((x) => x.id === t) ? t : 'album';
-  });
-  const [tab, setTab] = useState('queued');
-  const [toast, setToast] = useState('');
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState(false);
+  const [type, setType] = useState("album");
   const [active, setActive] = useState(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [mobileView, setMobileView] = useState('grid');
+  const [overlay, setOverlay] = useState(null);
   const [detail, setDetail] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [jump, setJump] = useState(0);
+  const [pendingPick, setPendingPick] = useState(null);
+  const [display, setDisplay] = useState(DEFAULT_DISPLAY);
+  const [displayError, setDisplayError] = useState("");
+  const [palette, setPalette] = useState({});
+  const [mobile, setMobile] = useState(false);
+  const useGrid = mobile && !display.mobile3D;
+  const flow = useRef(null);
+  const gridScroll = useRef({});
+  const selected = useRef({});
+  const toastTimer = useRef(null);
+  const pendingActions = useRef(new Set());
+  const cfg = mediaType(type);
+  const collection = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          inCollection(item) &&
+          MEDIA_TYPES.some((entry) => entry.id === item.type),
+      ),
+    [items],
+  );
+  const list = useMemo(
+    () =>
+      arrangeCollection(
+        collection.filter((item) => item.type === type),
+        display[type]?.sort,
+        palette,
+      ),
+    [collection, type, display, palette],
+  );
+  const likedItems = useMemo(() => collection.filter(isLiked), [collection]);
+  const current = list.find((item) => item.id === active?.id) || list[0];
+  const index = current ? list.findIndex((item) => item.id === current.id) : 0;
+  const counts = useMemo(
+    () =>
+      Object.fromEntries(
+        MEDIA_TYPES.map((entry) => [
+          entry.id,
+          collection.filter((item) => item.type === entry.id).length,
+        ]),
+      ),
+    [collection],
+  );
 
-  useEffect(() => {
-    fetch('/api/items')
-      .then(async (r) => { if (!r.ok) throw Error(); return r.json(); })
-      .then(setItems)
-      .catch(() => say('Could not load your queue. Refresh to try again.'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const say = useCallback((m) => { setToast(m); setTimeout(() => setToast(''), 2000); }, []);
-  const cfg = TYPES.find((t) => t.id === type);
-  const list = useMemo(() => items.filter((x) => x.type === type && x.state === tab), [items, type, tab]);
-  const counts = useMemo(() => {
-    const c = {};
-    for (const x of items) if (x.state === 'queued') c[x.type] = (c[x.type] || 0) + 1;
-    return c;
-  }, [items]);
-
-  const onActive = useCallback((i, item) => setActive(item || null), []);
-
-  async function go(state, chosen = active) {
-    if (!chosen) return;
-    setActive(chosen);
-    const old = items;
-    setItems((v) => v.map((y) => (y.id === chosen.id ? { ...y, state } : y)));
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      const r = await fetch(`/api/items/${chosen.id}`, {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ state }),
-      });
-      if (!r.ok) throw Error();
-      say(state === 'loved' ? (chosen.type === 'album' ? 'Saved to Music I love' : 'Kept') : 'Dropped from the queue');
+      const response = await fetch("/api/items");
+      if (!response.ok)
+        throw new Error(
+          response.status === 401
+            ? "Sign in to open your collection."
+            : "Your collection couldn’t be loaded. Please try again.",
+        );
+      setPreview(response.headers.get("X-Cabinet-Preview") === "true");
+      setItems(await response.json());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    const query = window.matchMedia(
+      "(max-width: 720px), (max-width: 1024px) and (pointer: coarse)",
+    );
+    const update = () => setMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("type");
+    if (MEDIA_TYPES.some((entry) => entry.id === requested)) setType(requested);
+    try {
+      setDisplay(
+        normalizeDisplay(JSON.parse(localStorage.getItem(DISPLAY_KEY))),
+      );
+    } catch {}
+    load();
+    return () => clearTimeout(toastTimer.current);
+  }, [load]);
+  useEffect(() => {
+    if (display[type]?.sort !== "spectrum") return;
+    let live = true;
+    Promise.all(
+      collection
+        .filter((item) => item.type === type)
+        .map(async (item) => [
+          item.id,
+          await analyzeCover(item.image_url, item.title),
+        ]),
+    ).then((entries) => {
+      if (live) setPalette(Object.fromEntries(entries));
+    });
+    return () => {
+      live = false;
+    };
+  }, [collection, type, display]);
+  function changeDisplay(value) {
+    const next = normalizeDisplay(value);
+    setDisplay(next);
+    setDisplayError("");
+    try {
+      localStorage.setItem(DISPLAY_KEY, JSON.stringify(next));
     } catch {
-      setItems(old);
-      say('Could not save. Try again.');
+      setDisplayError(
+        "The display changed, but this browser couldn’t remember it for next time.",
+      );
     }
   }
-
-  return (
-    <main className={`hub view-${mobileView}`}>
-      <header className="hub-top">
-        <b className="brand">CABINET<i>•</i></b>
-        <div className="hub-top-right">
-          <div className="seg">
-            <button className={tab === 'queued' ? 'on' : ''} onClick={() => setTab('queued')}>Queue</button>
-            <button className={tab === 'loved' ? 'on' : ''} onClick={() => setTab('loved')}>Kept</button>
-          </div>
-          <button className="add-btn" aria-label="Add" onClick={() => setAddOpen(true)}>+</button>
-        </div>
-      </header>
-      <div className="mobile-controlbar">
-      <nav className="hub-typenav">
-        {TYPES.map((t) => (
-          <button key={t.id} className={type === t.id ? 'on' : ''} onClick={() => setType(t.id)}>
-            {t.label}{counts[t.id] ? <b>{counts[t.id]}</b> : null}
+  useEffect(() => {
+    const onKey = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        if (!detail && !["add", "manual"].includes(overlay))
+          setOverlay((value) => (value === "search" ? null : "search"));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detail, overlay]);
+  useEffect(() => {
+    if (pendingPick && (useGrid || current?.id === pendingPick)) {
+      const frame = requestAnimationFrame(() => {
+        flow.current?.open(pendingPick);
+        setPendingPick(null);
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [pendingPick, current, jump, useGrid]);
+  const onActive = useCallback((i, item) => {
+    setActive(item || null);
+    if (item) selected.current[item.type] = item.id;
+  }, []);
+  const openDetail = useCallback(
+    (item, source) => {
+      selected.current[item.type] = item.id;
+      setActive(item);
+      setDetail({ item, source });
+    },
+    [],
+  );
+  function notify(message, undo) {
+    clearTimeout(toastTimer.current);
+    setToast({ message, undo });
+    toastTimer.current = setTimeout(() => setToast(null), undo ? 8000 : 3600);
+  }
+  function changeType(next) {
+    if (next === type) return;
+    setType(next);
+    setActive(null);
+    const url = new URL(window.location.href);
+    url.searchParams.set("type", next);
+    window.history.replaceState(null, "", url);
+  }
+  async function archive(item, archived = true) {
+    if (pendingActions.current.has(item.id)) return;
+    pendingActions.current.add(item.id);
+    const previous = item.metadata?.cabinet_archived || false;
+    setItems((old) =>
+      old.map((entry) =>
+        entry.id === item.id
+          ? {
+              ...entry,
+              metadata: { ...entry.metadata, cabinet_archived: archived },
+            }
+          : entry,
+      ),
+    );
+    try {
+      const response = await fetch(`/api/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived }),
+      });
+      if (!response.ok) throw new Error();
+      const updated = await response.json();
+      setItems((old) =>
+        old.map((entry) => (entry.id === item.id ? updated : entry)),
+      );
+      notify(
+        archived ? "Removed from your collection" : "Back in your collection",
+        archived ? () => archive(updated, false) : undefined,
+      );
+    } catch {
+      setItems((old) =>
+        old.map((entry) =>
+          entry.id === item.id
+            ? {
+                ...entry,
+                metadata: { ...entry.metadata, cabinet_archived: previous },
+              }
+            : entry,
+        ),
+      );
+      notify("Couldn’t save that change. Please try again.");
+    } finally {
+      pendingActions.current.delete(item.id);
+    }
+  }
+  async function updateItem(item, patch) {
+    if (pendingActions.current.has(item.id))
+      throw new Error("This item is still saving. Please try again.");
+    pendingActions.current.add(item.id);
+    const metadata = Object.fromEntries(
+      Object.entries(patch).map(([key, value]) => [`cabinet_${key}`, value]),
+    );
+    const previous = Object.fromEntries(
+      Object.keys(metadata).map((key) => [key, item.metadata?.[key]]),
+    );
+    setItems((old) =>
+      old.map((entry) =>
+        entry.id === item.id
+          ? { ...entry, metadata: { ...entry.metadata, ...metadata } }
+          : entry,
+      ),
+    );
+    try {
+      const response = await fetch(`/api/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!response.ok) throw new Error();
+      const updated = await response.json();
+      setItems((old) =>
+        old.map((entry) => (entry.id === item.id ? updated : entry)),
+      );
+    } catch {
+      setItems((old) =>
+        old.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, metadata: { ...entry.metadata, ...previous } }
+            : entry,
+        ),
+      );
+      throw new Error("Couldn’t save that change. Please try again.");
+    } finally {
+      pendingActions.current.delete(item.id);
+    }
+  }
+  function added(item) {
+    gridScroll.current[item.type] = 0;
+    selected.current[item.type] = item.id;
+    setItems((old) => [item, ...old.filter((entry) => entry.id !== item.id)]);
+    changeType(item.type);
+    setJump((value) => value + 1);
+    setOverlay(null);
+    notify(`Added to your ${mediaType(item.type).label.toLowerCase()}`);
+  }
+  function pickSearch(item) {
+    selected.current[item.type] = item.id;
+    setOverlay(null);
+    changeType(item.type);
+    setJump((value) => value + 1);
+    setPendingPick(item.id);
+  }
+  const mediaNavigation = (
+    <nav className="collection-nav" aria-label="Media collections">
+      <div className="media-tabs" role="tablist" aria-label="Media type">
+        {MEDIA_TYPES.map((entry, i) => (
+          <button
+            key={entry.id}
+            id={`tab-${entry.id}`}
+            role="tab"
+            aria-selected={type === entry.id}
+            aria-controls="collection-panel"
+            tabIndex={type === entry.id ? 0 : -1}
+            onClick={() => changeType(entry.id)}
+            onKeyDown={(event) => {
+              if (
+                ["ArrowLeft", "ArrowRight", "Home", "End"].includes(
+                  event.key,
+                )
+              ) {
+                event.preventDefault();
+                const next =
+                  event.key === "Home"
+                    ? 0
+                    : event.key === "End"
+                      ? 2
+                      : (i + (event.key === "ArrowRight" ? 1 : 2)) % 3;
+                changeType(MEDIA_TYPES[next].id);
+                document
+                  .getElementById(`tab-${MEDIA_TYPES[next].id}`)
+                  .focus();
+              }
+            }}
+          >
+            <Icon name={entry.id} size={17} />
+            <span>{entry.label}</span>
+            <b>{loading ? "–" : counts[entry.id]}</b>
           </button>
         ))}
-        {type === 'album' && <a className="deck-link" href="/deck" title="Turntable">◉</a>}
-      </nav>
-        <div className="mobile-viewbar" aria-label="Choose library view">
-          <button className={mobileView === 'grid' ? 'on' : ''} onClick={() => setMobileView('grid')}>Grid</button>
-          <button className={mobileView === 'time' ? 'on' : ''} onClick={() => setMobileView('time')}>Time</button>
-          <button className={mobileView === 'flow' ? 'on' : ''} onClick={() => setMobileView('flow')}>Flow</button>
-        </div>
       </div>
+    </nav>
+  );
+  return (
+    <main className={`cabinet${mobile ? " is-mobile" : ""}${mobile && !useGrid ? " is-mobile-carousel" : ""}`}>
+      <header className="cabinet-header">
+        <button
+          className="cabinet-brand"
+          aria-label="Cabinet menu"
+          aria-haspopup="dialog"
+          onClick={() => setOverlay("settings")}
+        >
+          Cabinet
+          <span />
+        </button>
+        {!mobile && mediaNavigation}
+        <div className="header-tools">
+          <button
+            className="glass icon-button search-launch"
+            aria-label="Search collection"
+            aria-keyshortcuts="Meta+K Control+K"
+            onClick={() => setOverlay("search")}
+          >
+            <Icon name="search" size={19} />
+          </button>
+          <button
+            className={`glass icon-button liked-launch${likedItems.length ? " has-likes" : ""}`}
+            aria-label={`Liked items${likedItems.length ? `, ${likedItems.length} saved` : ""}`}
+            onClick={() => setOverlay("liked")}
+          >
+            <Icon
+              name="heart"
+              size={21}
+              fill={likedItems.length ? "currentColor" : "none"}
+            />
+          </button>
+        </div>
+      </header>
 
-      <section className="mobile-library">
-        {loading ? <div className="hub-empty"><p>Loading your cabinet…</p></div> : list.length ? (
-          mobileView === 'grid' ? <MobileGrid items={list} onPick={(x) => { setActive(x); setDetail(x); }} /> :
-          mobileView === 'time' ? <MobileTimeList items={list} onPick={(x) => { setActive(x); setDetail(x); }} /> :
-          <div className="mobile-flow"><Flow items={list} cardW={196} ratio={cfg.ratio} overlap={64} onActive={onActive} onPick={(x) => setDetail(x)} kind={cfg.kind} /></div>
-        ) : <div className="hub-empty"><i>✳</i><h2>Nothing waiting here.</h2><button className="ghost" onClick={() => setAddOpen(true)}>Add one</button></div>}
-      </section>
-
-      <section className="hub-stage">
+      <section
+        id="collection-panel"
+        className="collection-panel"
+        role="tabpanel"
+        aria-labelledby={`tab-${type}`}
+      >
         {loading ? (
-          <div className="hub-empty"><p>Loading your cabinet…</p></div>
-        ) : list.length ? (
-          <Flow
-            items={list}
-            cardW={cfg.cardW}
-            ratio={cfg.ratio}
-            overlap={cfg.overlap}
-            onActive={onActive}
-            onPick={() => {}}
-            kind={cfg.kind}
-          />
-        ) : (
-          <div className="hub-empty">
-            <i>✳</i>
-            <h2>{tab === 'queued' ? 'Nothing waiting here.' : 'Nothing kept yet.'}</h2>
-            <p>{tab === 'queued' ? `Add the first ${cfg.label.toLowerCase().replace(/s$/, '')} — it takes ten seconds.` : 'Things you keep land here.'}</p>
-            {tab === 'queued' && <button className="ghost" onClick={() => setAddOpen(true)}>Add one</button>}
+          <div className="collection-empty">
+            <span className="spinner" />
+            <p>Opening your cabinet…</p>
           </div>
-        )}
-      </section>
-
-      <section className="hub-caption">
-        {active && (
-          <>
-            <small>{String(list.indexOf(active) + 1).padStart(2, '0')} / {String(list.length).padStart(2, '0')} · {TYPE_LABEL[active.type] || 'ITEM'}</small>
-            <h1>{active.title}</h1>
-            <b>{[active.creator, active.metadata?.year].filter(Boolean).join(' · ')}</b>
-            {active.metadata?.note && <p>{active.metadata.note}</p>}
-          </>
-        )}
-      </section>
-
-      <section className="hub-actions">
-        {active && tab === 'queued' && (
-          <>
-            <button className="ghost" onClick={() => go('dropped')}>Not for me</button>
-            <button className="solid" onClick={() => go('loved')}>Keep it ♥</button>
-          </>
-        )}
-        {active && tab === 'loved' && active.external_url && (
-          <a className="solid link" href={active.external_url} target="_blank" rel="noreferrer">
-            Open {active.type === 'album' ? 'in Spotify' : 'the reference'} ↗
-          </a>
-        )}
-      </section>
-
-
-      {detail && <Detail item={detail} tab={tab} onClose={() => setDetail(null)} onGo={(state) => { go(state, detail); setDetail(null); }} />}
-      {addOpen && <AddSheet defaultType={type} onClose={() => setAddOpen(false)} onAdded={(x) => { setItems((v) => [x, ...v]); setAddOpen(false); setType(x.type); setTab('queued'); say('Added to the queue'); }} />}
-      {toast && <aside className="toast">{toast}</aside>}
-    </main>
-  );
-}
-
-
-function MobileGrid({ items, onPick }) {
-  return <div className="mobile-grid">{items.map((item) => (
-    <button className="grid-card" key={item.id} onClick={() => onPick(item)}>
-      <span className="grid-art">{item.image_url ? <img src={item.image_url} alt="" /> : <span className="grid-blank">{item.title}</span>}</span>
-      <strong>{item.title}</strong>
-      <small>{item.creator || item.type}</small>
-    </button>
-  ))}</div>;
-}
-
-function durationFor(item) {
-  const n = Number(item.metadata?.duration_mins || item.metadata?.length_mins || 0);
-  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-}
-
-function MobileTimeList({ items, onPick }) {
-  const groups = [
-    ['Over 60 min', items.filter((x) => durationFor(x) > 60)],
-    ['30–60 min', items.filter((x) => durationFor(x) >= 30 && durationFor(x) <= 60)],
-    ['Under 30 min', items.filter((x) => durationFor(x) && durationFor(x) < 30)],
-    ['Length not set', items.filter((x) => !durationFor(x))],
-  ].filter(([, xs]) => xs.length);
-  return <div className="time-list">{groups.map(([label, xs]) => <section key={label}>
-    <h2>{label}</h2>
-    {xs.map((item) => <button className="time-row" key={item.id} onClick={() => onPick(item)}>
-      <span>{item.image_url ? <img src={item.image_url} alt="" /> : null}</span>
-      <i><strong>{item.title}</strong><small>{item.creator}{durationFor(item) ? ` · ${durationFor(item)} min` : ''}</small></i>
-      <b>›</b>
-    </button>)}
-  </section>)}</div>;
-}
-
-function Detail({ item, tab, onClose, onGo }) {
-  const meta = item.metadata || {};
-  const service = item.type === 'album' ? 'Listen' : item.type === 'book' ? 'Read more' : 'Open';
-  return <div className="detail-page" style={item.image_url ? { '--detail-art': `url("${item.image_url}")` } : {}}>
-    <div className="detail-wash" />
-    <header><button onClick={onClose} aria-label="Close">×</button><span>{item.type}</span><button aria-label="More">•••</button></header>
-    <div className="detail-hero">{item.image_url ? <img src={item.image_url} alt="" /> : <div className="grid-blank">{item.title}</div>}</div>
-    <div className="detail-copy">
-      <h1>{item.title}</h1>
-      <p>{[item.creator, meta.year, durationFor(item) ? `${durationFor(item)} min` : null].filter(Boolean).join(' · ')}</p>
-      {item.external_url && <a href={item.external_url} target="_blank" rel="noreferrer">↗&nbsp; {service}</a>}
-      {meta.note && <div className="detail-note">{meta.note}</div>}
-      <dl>
-        <div><dt>Added</dt><dd>{item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Cabinet'}</dd></div>
-        {meta.year && <div><dt>Released</dt><dd>{meta.year}</dd></div>}
-        <div><dt>Type</dt><dd>{item.type === 'movie' ? 'Film' : item.type[0].toUpperCase() + item.type.slice(1)}</dd></div>
-        {durationFor(item) && <div><dt>Length</dt><dd>{durationFor(item)} min</dd></div>}
-      </dl>
-      {tab === 'queued' && <div className="detail-actions"><button onClick={() => onGo('dropped')}>Not for me</button><button onClick={() => onGo('loved')}>Keep it ♥</button></div>}
-    </div>
-  </div>;
-}
-
-function Backdrop({ item }) {
-  return (
-    <div className="backdrop" aria-hidden>
-      {item?.image_url && <img key={item.id} src={item.image_url} alt="" />}
-    </div>
-  );
-}
-
-function AddSheet({ defaultType, onClose, onAdded }) {
-  const [type, setType] = useState(defaultType);
-  const [q, setQ] = useState('');
-  const [results, setResults] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [adding, setAdding] = useState('');
-
-  async function search(e) {
-    e?.preventDefault();
-    if (!q.trim()) return;
-    setBusy(true); setResults(null);
-    try {
-      const r = await fetch(`/api/lookup?type=${type}&q=${encodeURIComponent(q)}`);
-      const j = await r.json();
-      setResults(j.results || []);
-    } catch { setResults([]); }
-    setBusy(false);
-  }
-
-  async function add(x) {
-    setAdding(x.title);
-    const r = await fetch('/api/items', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...x, metadata: { year: x.year || undefined } }),
-    });
-    if (r.ok) onAdded(await r.json());
-    else setAdding('');
-  }
-
-  return (
-    <div className="sheet-veil" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="sheet">
-        <div className="sheet-head">
-          <div className="seg">
-            {TYPES.map((t) => (
-              <button key={t.id} className={type === t.id ? 'on' : ''} onClick={() => { setType(t.id); setResults(null); }}>{t.label}</button>
-            ))}
-          </div>
-          <button className="add-btn" onClick={onClose}>×</button>
-        </div>
-        <form onSubmit={search} className="sheet-search">
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={type === 'book' ? 'A book title…' : type === 'movie' ? 'A film…' : 'An album…'} />
-          <button className="solid" disabled={busy}>{busy ? '…' : 'Find'}</button>
-        </form>
-        <div className="sheet-results">
-          {results && !results.length && <p className="sheet-none">Nothing found. Try the full title.</p>}
-          {(results || []).map((x, i) => (
-            <button key={i} className="sheet-row" disabled={!!adding} onClick={() => add(x)}>
-              <span className="sr-thumb">{x.image_url ? <img src={x.image_url} alt="" /> : null}</span>
-              <span className="sr-info">
-                <span className="sr-title">{x.title}</span>
-                <span className="sr-sub">{[x.creator, x.year].filter(Boolean).join(' · ')}</span>
-              </span>
-              <span className="sr-plus">{adding === x.title ? '…' : '+'}</span>
+        ) : error ? (
+          <div className="collection-empty">
+            <Icon name="album" size={32} />
+            <h1>A little trouble opening the cabinet.</h1>
+            <p>{error}</p>
+            <button className="glass" onClick={load}>
+              Try again
             </button>
-          ))}
-        </div>
-      </div>
-    </div>
+          </div>
+        ) : list.length && useGrid ? (
+          <CollectionGrid
+            ref={flow}
+            key={`${type}-${jump}`}
+            items={list}
+            type={type}
+            scrollPositions={gridScroll}
+            onPick={openDetail}
+          />
+        ) : list.length ? (
+          <>
+            <div className="collection-stage">
+              <Flow
+                ref={flow}
+                key={`${type}-${jump}`}
+                items={list}
+                type={type}
+                layout={display[type]?.layout || "coverflow"}
+                initialId={selected.current[type]}
+                onActive={onActive}
+                onPick={openDetail}
+              />
+            </div>
+            <div
+              className="collection-caption"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <span className="eyebrow">
+                {String(index + 1).padStart(2, "0")}{" "}
+                <span className="caption-slash">/</span>{" "}
+                {String(list.length).padStart(2, "0")}
+                <span className="caption-dot">·</span>
+                {cfg.singular}
+              </span>
+              <h1>{current?.title}</h1>
+              <p>
+                {[current?.creator, current?.metadata?.year || current?.year]
+                  .filter(Boolean)
+                  .join(" · ") ||
+                  `In your ${cfg.label.toLowerCase()} collection`}
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="collection-empty">
+            <span className="empty-icon">
+              <Icon name={type} size={32} />
+            </span>
+            <span className="eyebrow">A LITTLE SPACE FOR WHAT’S NEXT</span>
+            <h1>Your {cfg.label.toLowerCase()} collection starts here.</h1>
+            <p>Save a {cfg.singular.toLowerCase()} you want to come back to.</p>
+            <button className="glass" onClick={() => setOverlay("settings")}>
+              Open Cabinet settings
+            </button>
+          </div>
+        )}
+      </section>
+      {mobile && mediaNavigation}
+      {!mobile && <footer className="cabinet-footer">
+        <span>
+          {preview
+            ? "Sample collection · local preview"
+            : "A place for your next favorite."}
+        </span>
+        {list.length > 1 && (
+          <span className="browse-hint">
+            <span className="desktop-hint">Scroll or drag to browse</span>
+            <span className="mobile-hint">Swipe to browse</span>
+            <span>·</span>Tap to explore
+          </span>
+        )}
+      </footer>}
+      {detail && (
+        <DetailModal
+          item={items.find((item) => item.id === detail.item.id) || detail.item}
+          source={detail.source}
+          onClose={() => setDetail(null)}
+          onRemove={archive}
+          onChange={updateItem}
+        />
+      )}
+      {["add", "manual"].includes(overlay) && (
+        <AddDialog
+          key={overlay}
+          initialManual={overlay === "manual"}
+          defaultType={type}
+          items={collection}
+          onClose={() => setOverlay("settings")}
+          onAdded={added}
+        />
+      )}
+      {["search", "liked"].includes(overlay) && (
+        <SearchDialog
+          key={overlay}
+          liked={overlay === "liked"}
+          items={overlay === "liked" ? likedItems : collection}
+          onClose={() => setOverlay(null)}
+          onPick={pickSearch}
+        />
+      )}
+      {overlay === "settings" && (
+        <SettingsDialog
+          settings={display}
+          items={collection}
+          defaultType={type}
+          onChange={changeDisplay}
+          onClose={() => setOverlay(null)}
+          onAdd={(manual) => setOverlay(manual ? "manual" : "add")}
+          error={displayError}
+        />
+      )}
+      {toast && (
+        <aside className="cabinet-toast" role="status">
+          <Icon name="check" size={17} />
+          <span>{toast.message}</span>
+          {toast.undo && (
+            <button
+              onClick={() => {
+                toast.undo();
+                setToast(null);
+              }}
+            >
+              Undo
+            </button>
+          )}
+        </aside>
+      )}
+    </main>
   );
 }

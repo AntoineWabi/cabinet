@@ -1,0 +1,57 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/admin/seed/admin/seed",
+    "source": "app/api/admin/seed/admin/seed/route.js"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/seed/app/api/admin/seed",
+    "source": "app/api/admin/seed/app/api/admin/seed/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/artwork",
+    "source": "app/api/artwork/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/details",
+    "source": "app/api/details/route.js"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/items/{id}",
+    "source": "app/api/items/[id]/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/items",
+    "source": "app/api/items/route.js"
+  },
+  {
+    "method": "POST",
+    "path": "/api/items",
+    "source": "app/api/items/route.js"
+  },
+  {
+    "method": "POST",
+    "path": "/api/login",
+    "source": "app/api/login/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/lookup",
+    "source": "app/api/lookup/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/spotify/callback",
+    "source": "app/api/spotify/callback/route.js"
+  },
+  {
+    "method": "GET",
+    "path": "/api/spotify/connect",
+    "source": "app/api/spotify/connect/route.js"
+  }
+]
