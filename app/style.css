@@ -1379,7 +1379,8 @@ button[hidden] {
     0 6px 10px #00000017;
 }
 .detail-art .record-disc {
-  display: none;
+  visibility: hidden;
+  transition: none;
 }
 .detail-spin {
   display: block;

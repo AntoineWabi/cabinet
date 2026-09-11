@@ -25,6 +25,7 @@ export default function DetailModal({
   const dialog = useDialog();
   const hero = useRef(null);
   const flight = useRef(null);
+  const recordSlide = useRef(null);
   const turn = useRef(null);
   const closing = useRef(false);
   const colors = useCover(item);
@@ -116,6 +117,13 @@ export default function DetailModal({
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    // Carry the visible record with the shared sleeve, then tuck it inside.
+    // Use a relative offset because the gallery and detail covers differ in size.
+    const record = element.querySelector(".record-disc");
+    const sourceRecord = sourceObject.querySelector(".record-disc");
+    if (record && sourceRecord && !reduce) {
+      recordSlide.current = slideRecord(record, recordOffset(sourceRecord), 0, 420);
+    }
     flight.current = element.animate(
       [
         {
@@ -131,12 +139,16 @@ export default function DetailModal({
     );
     flight.current.finished
       .then(() => {
-        if (live && !closing.current) releaseHero(element);
+        if (live && !closing.current) {
+          releaseHero(element);
+          recordSlide.current?.cancel();
+        }
       })
       .catch(() => {});
     return () => {
       live = false;
       flight.current?.cancel();
+      recordSlide.current?.cancel();
       releaseHero(element);
       sourceObject.style.visibility = "";
     };
@@ -184,6 +196,9 @@ export default function DetailModal({
       turn.current.updatePlaybackRate(Math.max(1, remaining / 300));
     }
     const element = hero.current;
+    const record = element.querySelector(".record-disc");
+    const recordFrom = recordOffset(record);
+    recordSlide.current?.cancel();
     // Reverse from the currently displayed frame, including an interrupted open.
     const from = element.getBoundingClientRect();
     flight.current?.cancel();
@@ -192,6 +207,17 @@ export default function DetailModal({
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const sourceRecord = source?.isConnected
+      ? source.closest(".media-object")?.querySelector(".record-disc")
+      : null;
+    if (record && sourceRecord && !remove && !reduce) {
+      recordSlide.current = slideRecord(
+        record,
+        recordFrom,
+        recordOffset(sourceRecord),
+        420,
+      );
+    }
     // Take over from entrance animations: their filled opacity otherwise keeps
     // the copy visible after the panel has disappeared.
     for (const selector of [
@@ -424,6 +450,28 @@ export default function DetailModal({
         </div>
       </div>
     </dialog>
+  );
+}
+
+function recordOffset(record) {
+  if (!record?.offsetHeight) return 0;
+  const transform = getComputedStyle(record).transform;
+  return transform === "none"
+    ? 0
+    : (new DOMMatrixReadOnly(transform).m42 / record.offsetHeight) * 100;
+}
+
+function slideRecord(record, from, to, duration) {
+  return record.animate(
+    [
+      { transform: `translateY(${from}%)`, visibility: "visible" },
+      { transform: `translateY(${to}%)`, visibility: "visible" },
+    ],
+    {
+      duration,
+      easing: "cubic-bezier(.4,.06,.2,1)",
+      fill: "both",
+    },
   );
 }
 
