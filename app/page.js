@@ -7,7 +7,7 @@ import DetailModal from "./components/detail-modal";
 import AddDialog from "./components/add-dialog";
 import SearchDialog from "./components/search-dialog";
 import SettingsDialog from "./components/settings-dialog";
-import { MEDIA_TYPES, mediaType, inCollection, isLiked, bookShelfOf, BOOK_SHELVES } from "../lib/media";
+import { MEDIA_TYPES, mediaType, inCollection, isLiked, isCompleted } from "../lib/media";
 import {
   DEFAULT_DISPLAY,
   DISPLAY_KEY,
@@ -22,7 +22,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
   const [type, setType] = useState("album");
-  const [bookShelf, setBookShelf] = useState("want-to-read");
+  const [statusFilter, setStatusFilter] = useState("queue");
   const [active, setActive] = useState(null);
   const [overlay, setOverlay] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -49,29 +49,34 @@ export default function Home() {
       ),
     [items],
   );
+  const typeItems = useMemo(
+    () => collection.filter((item) => item.type === type),
+    [collection, type],
+  );
+  const statusCounts = useMemo(
+    () => ({
+      queue: typeItems.filter((item) => !isCompleted(item) && !isLiked(item)).length,
+      completed: typeItems.filter(isCompleted).length,
+      liked: typeItems.filter(isLiked).length,
+    }),
+    [typeItems],
+  );
   const list = useMemo(
     () =>
       arrangeCollection(
-        collection.filter(
-          (item) =>
-            item.type === type &&
-            (type !== "book" || bookShelf === "all" || bookShelfOf(item) === "want-to-read" || isLiked(item)),
+        typeItems.filter((item) =>
+          statusFilter === "queue"
+            ? !isCompleted(item) && !isLiked(item)
+            : statusFilter === "completed"
+              ? isCompleted(item)
+              : isLiked(item),
         ),
         display[type]?.sort,
         palette,
       ),
-    [collection, type, bookShelf, display, palette],
+    [typeItems, statusFilter, display, type, palette],
   );
   const likedItems = useMemo(() => collection.filter(isLiked), [collection]);
-  const bookShelfCounts = useMemo(() => {
-    const books = collection.filter((item) => item.type === "book");
-    return {
-      all: books.length,
-      "want-to-read": books.filter(
-        (item) => bookShelfOf(item) === "want-to-read" || isLiked(item),
-      ).length,
-    };
-  }, [collection]);
   const current = list.find((item) => item.id === active?.id) || list[0];
   const index = current ? list.findIndex((item) => item.id === current.id) : 0;
   const counts = useMemo(
@@ -193,6 +198,7 @@ export default function Home() {
   function changeType(next) {
     if (next === type) return;
     setType(next);
+    setStatusFilter("queue");
     setActive(null);
     const url = new URL(window.location.href);
     url.searchParams.set("type", next);
@@ -224,7 +230,7 @@ export default function Home() {
         old.map((entry) => (entry.id === item.id ? updated : entry)),
       );
       notify(
-        archived ? "Removed from your collection" : "Back in your collection",
+        archived ? "Dismissed from your queue" : "Back in your queue",
         archived ? () => archive(updated, false) : undefined,
       );
     } catch {
@@ -376,20 +382,7 @@ export default function Home() {
         </div>
       </header>
 
-      {type === "book" && !loading && !error && (
-        <nav className="book-shelves" aria-label="Book shelves">
-          {[{ id: "all", label: "All books" }, BOOK_SHELVES[0]].map((shelf) => (
-            <button
-              key={shelf.id}
-              className={bookShelf === shelf.id ? "on" : ""}
-              aria-pressed={bookShelf === shelf.id}
-              onClick={() => setBookShelf(shelf.id)}
-            >
-              <span>{shelf.label}</span><b>{bookShelfCounts[shelf.id] || 0}</b>
-            </button>
-          ))}
-        </nav>
-      )}
+
 
       <section
         id="collection-panel"
@@ -417,7 +410,6 @@ export default function Home() {
             key={`${type}-${jump}`}
             items={list}
             type={type}
-            shelf={bookShelf}
             scrollPositions={gridScroll}
             onPick={openDetail}
           />
@@ -462,14 +454,38 @@ export default function Home() {
               <Icon name={type} size={32} />
             </span>
             <span className="eyebrow">A LITTLE SPACE FOR WHAT’S NEXT</span>
-            <h1>Your {cfg.label.toLowerCase()} collection starts here.</h1>
-            <p>Save a {cfg.singular.toLowerCase()} you want to come back to.</p>
+            <h1>No {statusFilter === "queue" ? "queued" : statusFilter === "liked" ? "liked" : cfg.completed.toLowerCase()} {cfg.noun} here.</h1>
+            <p>Choose another status or add something new.</p>
             <button className="glass" onClick={() => setOverlay("settings")}>
               Open Cabinet settings
             </button>
           </div>
         )}
       </section>
+      {!loading && !error && (
+        <nav className="status-nav" aria-label={`${cfg.label} status`}>
+          <div className="media-tabs">
+            {[
+              { id: "queue", label: "Queue" },
+              { id: "completed", label: cfg.completed },
+              { id: "liked", label: "Liked" },
+            ].map((entry) => (
+              <button
+                key={entry.id}
+                aria-pressed={statusFilter === entry.id}
+                onClick={() => {
+                  setStatusFilter(entry.id);
+                  setActive(null);
+                }}
+              >
+                <Icon name={entry.id === "queue" ? type : entry.id === "completed" ? "check" : "heart"} size={16} />
+                <span>{entry.label}</span>
+                <b>{statusCounts[entry.id]}</b>
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
       {mobile && mediaNavigation}
       {!mobile && <footer className="cabinet-footer">
         <span>

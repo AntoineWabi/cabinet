@@ -2421,3 +2421,14 @@ button[hidden] {
   .cabinet.is-mobile:has(.book-shelves) .collection-panel { min-height: 0; }
   .grid-shelf > header { position: sticky; top: 0; z-index: 2; padding-top: 10px; background: linear-gradient(#f7f7f5 75%, transparent); }
 }
+
+/* Queue lifecycle filters sit at the bottom without disturbing the media layouts. */
+.status-nav { display:flex; justify-content:center; flex-shrink:0; padding:8px 16px calc(14px + var(--safe-b)); position:relative; z-index:4; }
+.status-nav .media-tabs { padding:5px; }
+.status-nav .media-tabs button { min-width:128px; }
+@media (max-width:720px), (max-width:1024px) and (pointer:coarse) {
+  .cabinet.is-mobile { --mobile-nav-space:calc(158px + var(--safe-b)); }
+  .cabinet.is-mobile .status-nav { position:absolute; left:50%; bottom:calc(72px + var(--safe-b)); transform:translateX(-50%); width:min(410px,calc(100% - 24px)); padding:0; }
+  .cabinet.is-mobile .status-nav .media-tabs { width:100%; background:#fafaf9e6; gap:2px; }
+  .cabinet.is-mobile .status-nav button { flex:1; min-width:0; padding:0 8px; gap:5px; font-size:12px; }
+}

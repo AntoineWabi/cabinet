@@ -371,14 +371,7 @@ export default function DetailModal({
                 className="glass like-toggle"
                 aria-pressed={liked}
                 disabled={saving}
-                onClick={() =>
-                  mark({
-                    liked: !liked,
-                    ...(item.type === "book" && !liked
-                      ? { shelf: "want-to-read" }
-                      : {}),
-                  })
-                }
+                onClick={() => mark({ liked: !liked })}
               >
                 <Icon
                   name="heart"
@@ -451,7 +444,7 @@ export default function DetailModal({
               disabled={saving}
               onClick={() => close(true)}
             >
-              <Icon name="trash" size={15} /> Remove
+              <Icon name="trash" size={15} /> Dismiss
             </button>
           </footer>
         </div>

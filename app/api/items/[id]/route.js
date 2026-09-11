@@ -25,8 +25,6 @@ export async function PATCH(request, { params }) {
   for (const field of ["archived", "liked", "completed"])
     if (body[field] !== undefined && typeof body[field] !== "boolean")
       return new Response("Invalid collection action", { status: 400 });
-  if (body.shelf !== undefined && body.shelf !== "want-to-read")
-    return new Response("Invalid book shelf", { status: 400 });
   if (
     body.title !== undefined &&
     (typeof body.title !== "string" || !body.title.trim())
@@ -42,7 +40,6 @@ export async function PATCH(request, { params }) {
   const metadata = {};
   if (body.archived !== undefined) metadata.cabinet_archived = body.archived;
   if (body.liked !== undefined) metadata.cabinet_liked = body.liked;
-  if (body.shelf !== undefined) metadata.cabinet_shelf = String(body.shelf).slice(0, 80);
   if (body.completed !== undefined) metadata.cabinet_completed = body.completed;
   if (body.year !== undefined) metadata.year = String(body.year).slice(0, 40);
   if (localPreview()) {
